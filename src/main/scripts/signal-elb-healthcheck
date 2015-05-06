@@ -10,7 +10,7 @@ import sys
 import logging
 
 from docopt import docopt
-from cseh import signal_elb_healthcheck
+from cseh import HealthChecker
 
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
@@ -21,7 +21,7 @@ arguments = docopt(__doc__)
 elb_name = arguments["ELB_NAME"]
 
 try:
-    signal_elb_healthcheck(elb_name)
+    HealthChecker().elb_healthcheck(elb_name)
 except Exception as e:
     print "[ERROR] %s" % e
     sys.exit(1)
