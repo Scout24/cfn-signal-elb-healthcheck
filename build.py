@@ -17,6 +17,7 @@ version = 0.1
 def set_properties(project):
     project.build_depends_on('mock')
     project.depends_on('docopt')
+    project.depends_on('botocore')
     project.depends_on('boto')
 
     project.set_property('copy_resources_target', '$dir_dist')
