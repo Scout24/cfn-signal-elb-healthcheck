@@ -8,8 +8,8 @@ from cseh import get_region, _get_instance_id
 class HealthChecker(object):
 
     def __init__(self, region=None, instance_id=None):
-        self.region = region if region is not None else get_region()
-        self.instance_id = instance_id if instance_id is not None else _get_instance_id()
+        self.region = region or get_region()
+        self.instance_id = instance_id or _get_instance_id()
         self.elb_conn = connect_to_region(self.region)
         self.logger = logging.getLogger(__name__)
 
