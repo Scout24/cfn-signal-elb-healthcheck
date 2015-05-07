@@ -1,0 +1,247 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "integration test webapp for cfn-signal-elb-healthcheck",
+  "Parameters": {
+    "amiId": {
+      "Description": "AMI ID",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "41",
+      "AllowedPattern": "ami-[a-zA-Z0-9]*",
+      "ConstraintDescription": "must begin with ami- and can contain only alphanumeric characters."
+    },
+    "vpcId": {
+      "Description": "VPC ID",
+      "Type": "AWS::EC2::VPC::Id",
+      "MinLength": "1",
+      "MaxLength": "41",
+      "Default": "vpc-8a50adef",
+      "ConstraintDescription": "must begin with vpc- and can contain only alphanumeric characters. defaults for Ireland"
+    },
+    "subnetIds": {
+      "Description": "Subnet IDs",
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Default": "subnet-e1bd6684, subnet-607b9e39, subnet-b216d0c5",
+      "ConstraintDescription": "comma separated list of subnet-ids, defaults for Ireland"
+    }
+  },
+  "Resources": {
+    "iamInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "iamRole"
+          }
+        ]
+      }
+    },
+    "iamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Path": "/",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["ec2.amazonaws.com"]
+              },
+              "Action": ["sts:AssumeRole"]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "signal-elb-healthcheck",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "elb:DescribeInstanceHealth"
+                  ],
+                  "Resource": {
+                    "Ref": "elb"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "elbsg": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "ELB",
+        "VpcId": {
+          "Ref": "vpcId"
+        }
+      }
+    },
+    "sg": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "stack internal",
+        "VpcId": {
+          "Ref": "vpcId"
+        }
+      }
+    },
+    "sgIngressFromELB": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "sg"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "8080",
+        "ToPort": "8080",
+        "SourceSecurityGroupId": {
+          "Ref": "elbsg"
+        }
+      }
+    },
+    "elbsgEgress": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "elbsg"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "8080",
+        "ToPort": "8080",
+        "DestinationSecurityGroupId": {
+          "Ref": "sg"
+        }
+      }
+    },
+    "elbsgIngressFromEverywhere": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {"Ref": "elbsg"},
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "elb": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "CrossZone": true,
+        "Subnets": {
+          "Ref": "subnetIds"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "elbsg"
+          }
+        ],
+        "Listeners": [
+          {
+            "InstancePort": "8080",
+            "LoadBalancerPort": "80",
+            "Protocol": "TCP",
+            "InstanceProtocol": "TCP"
+          }
+        ],
+        "HealthCheck": {
+          "HealthyThreshold": "2",
+          "Interval": "10",
+          "Target": "HTTP:8080/",
+          "Timeout": "5",
+          "UnhealthyThreshold": "2"
+        }
+      }
+    },
+    "lc": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "AssociatePublicIpAddress": false,
+        "ImageId": {
+          "Ref": "amiId"
+        },
+        "InstanceType": "t2.micro",
+        "IamInstanceProfile": {
+          "Ref": "iamInstanceProfile"
+        },
+        "KeyName": "team_rz_strategie",
+        "SecurityGroups": [
+          {
+            "Ref": "sg"
+          },
+          "sg-fc822499"
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "\n",
+              [
+                "#cloud-boothook",
+                "#!/usr/bin/is24-aws-init",
+                "is24_aws_stackname",
+                {
+                  "Ref": "stackName"
+                },
+                "is24_aws_launchconfig",
+                "launchConfiguration",
+                "is24_aws_cloudwatch_loggroup",
+                {
+                  "Ref": "logGroup"
+                },
+                "is24_aws_elb_name",
+                { "Ref": "elb" },
+                "is24_aws_autoscalinggroup_logical_id",
+                "autoScalingGroup"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "asg": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy": {
+        "AutoScalingRollingUpdate" : {
+          "MinInstancesInService" : "1",
+          "MaxBatchSize" : "2",
+          "WaitOnResourceSignals" : "true",
+          "PauseTime" : "PT4M",
+          "WaitOnResourceSignals": true
+        }
+      },
+      "Properties": {
+        "TerminationPolicies": [
+          "OldestLaunchConfiguration"
+        ],
+        "AvailabilityZones": {
+          "Fn::GetAZs": {
+            "Ref": "AWS::Region"
+          }
+        },
+        "Cooldown": "10",
+        "DesiredCapacity": "1",
+        "MaxSize": "3",
+        "MinSize": "1",
+        "HealthCheckGracePeriod": "600",
+        "HealthCheckType": "EC2",
+        "VPCZoneIdentifier": {
+          "Ref": "subnetIds"
+        },
+        "LaunchConfigurationName": {
+          "Ref": "lc"
+        },
+        "LoadBalancerNames": [
+          {
+            "Ref": "elb"
+          }
+        ]
+      }
+    }
+  }
+}

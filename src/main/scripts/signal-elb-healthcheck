@@ -30,6 +30,6 @@ try:
                        get_instance_id(),
                        HealthChecker().elb_healthcheck(elb_name))
 except Exception as e:
-    logger.excpetion(e)
+    logger.exception(e)
     sys.exit(1)
 

@@ -2,14 +2,14 @@ import logging
 from time import sleep
 
 from boto.ec2.elb import connect_to_region
-from cseh import get_region, _get_instance_id
+from cseh import get_region, get_instance_id
 
 
 class HealthChecker(object):
 
     def __init__(self, region=None, instance_id=None):
         self.region = region or get_region()
-        self.instance_id = instance_id or _get_instance_id()
+        self.instance_id = instance_id or get_instance_id()
         self.elb_conn = connect_to_region(self.region)
         self.logger = logging.getLogger(__name__)
 
