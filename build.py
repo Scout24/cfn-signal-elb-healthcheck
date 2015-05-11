@@ -1,4 +1,5 @@
 from pybuilder.core import use_plugin, init
+from pybuilder.vcs import VCSRevision
 import os
 
 use_plugin("python.core")
@@ -8,12 +9,9 @@ use_plugin("python.distutils")
 use_plugin("copy_resources")
 use_plugin("python.pycharm")
 
-
 name = "cfn-signal-elb-healthcheck"
 default_task = ['clean', 'publish']
-from pybuilder.vcs import VCSRevision
 version = VCSRevision().count
-
 
 @init
 def set_properties(project):
