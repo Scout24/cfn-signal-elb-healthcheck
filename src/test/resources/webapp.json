@@ -60,13 +60,21 @@
               "Version": "2012-10-17",
               "Statement": [
                 {
-                  "Effect": "Allow",
-                  "Action": [
-                    "elb:DescribeInstanceHealth"
+                  "Resource": [
+                    "*"
                   ],
-                  "Resource": {
-                    "Ref": "elb"
-                  }
+                  "Action": [
+                    "elasticloadbalancing:DescribeInstanceHealth"
+                  ],
+                  "Effect": "Allow"
+                }, {
+                  "Resource": [
+                    "*"
+                  ],
+                  "Action": [
+                    "cloudformation:SignalResource"
+                  ],
+                  "Effect": "Allow"
                 }
               ]
             }
@@ -185,19 +193,13 @@
                 "#cloud-boothook",
                 "#!/usr/bin/is24-aws-init",
                 "is24_aws_stackname",
-                {
-                  "Ref": "stackName"
-                },
+                { "Ref": "AWS::StackName" },
                 "is24_aws_launchconfig",
                 "launchConfiguration",
-                "is24_aws_cloudwatch_loggroup",
-                {
-                  "Ref": "logGroup"
-                },
                 "is24_aws_elb_name",
                 { "Ref": "elb" },
                 "is24_aws_autoscalinggroup_logical_id",
-                "autoScalingGroup"
+                "asg"
               ]
             ]
           }
@@ -209,9 +211,9 @@
       "UpdatePolicy": {
         "AutoScalingRollingUpdate" : {
           "MinInstancesInService" : "1",
-          "MaxBatchSize" : "2",
-          "WaitOnResourceSignals" : "true",
-          "PauseTime" : "PT4M",
+          "MaxBatchSize" : "1",
+          "WaitOnResourceSignals" : true,
+          "PauseTime" : "PT10M",
           "WaitOnResourceSignals": true
         }
       },

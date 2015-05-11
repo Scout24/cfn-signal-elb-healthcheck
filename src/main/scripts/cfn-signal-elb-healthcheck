@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Usage:
-    signal-elb-healthcheck ELB_NAME ASG_LOGICAL_RESOURCE_NAME STACK_NAME
+Signals CloudFormation SUCCESS if within a time of 2 minutes the ELB thinks this instance is healthy, FAILURE if not.
 
-Options:
+Usage:
+    cfn-signal-elb-healthcheck ELB_NAME ASG_LOGICAL_RESOURCE_NAME STACK_NAME
 """
 
 import sys
