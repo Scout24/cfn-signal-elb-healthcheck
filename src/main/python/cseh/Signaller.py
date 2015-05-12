@@ -17,7 +17,7 @@ class Signaller(object):
             return
 
         status = "SUCCESS" if healthy else "FAILURE"
-        self.logger.info("Signalling: {0} resource: {2} in stack: {3}".format(
+        self.logger.info("Signalling: {0} resource: {1} in stack: {2}".format(
             status, logical_resource_id, stack_name))
         return self.cfn_client.signal_resource(LogicalResourceId=logical_resource_id,
                                                StackName=stack_name,
