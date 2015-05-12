@@ -25,9 +25,9 @@ class HealthChecker(object):
         self.logger.info("ELB state for instance {0}: {1}".format(self.instance_id, state))
         return state == 'InService'
 
-    def wait_for_elb_healthcheck(self, elb_name, timeout):
-        for i in range(0, timeout / INTERVAL):
-            if self.elb_healthcheck(elb_name) is True:
+    def wait_for_elb_healthcheck(self, elb_name, timeout_in_seconds):
+        for i in range(0, timeout_in_seconds / INTERVAL):
+            if self.elb_healthcheck(elb_name):
                 return self.signaller.signal(self.logical_resource_id, self.stack_name, True)
             else:
                 sleep(INTERVAL)
