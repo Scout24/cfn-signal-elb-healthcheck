@@ -69,7 +69,7 @@
                   "Effect": "Allow"
                 }, {
                   "Resource": [
-                    { "Fn::Join": [ "", [ "arn:aws:cloudformation:::", { "Ref": "AWS::StackName" }, "/*" ]] }
+                    { "Fn::Join": [ "", [ { "Ref": "AWS::StackId" }, "/*" ]] }
                   ],
                   "Action": [
                     "cloudformation:SignalResource"
