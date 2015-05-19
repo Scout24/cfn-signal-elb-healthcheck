@@ -208,7 +208,9 @@
                 "is24_aws_elb_name",
                 { "Ref": "elb" },
                 "is24_aws_autoscalinggroup_logical_id",
-                "asg"
+                "asg",
+                "is24_aws_autoscaling_stackname",
+                { "Ref": "AWS::StackName" }
               ]
             ]
           }
