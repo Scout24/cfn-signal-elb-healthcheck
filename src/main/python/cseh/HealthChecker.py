@@ -5,7 +5,6 @@ from boto.ec2.elb import connect_to_region
 from cseh import get_region, get_instance_id
 from cseh.Signaller import Signaller
 
-
 INTERVAL = 5
 
 
@@ -20,6 +19,7 @@ class HealthChecker(object):
         self.signaller = Signaller(instance_id, region)
 
     def elb_healthcheck(self, elb_name):
+        self.logger.info("trying describe instance health at ELB API")
         instance_state = self.elb_conn.describe_instance_health(elb_name, [self.instance_id])
         state = instance_state[0].state
         self.logger.info("ELB state for instance {0}: {1}".format(self.instance_id, state))
