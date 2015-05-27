@@ -6,7 +6,7 @@ Usage:
     cfn-signal-elb-healthcheck [options] ELB_NAME ASG_LOGICAL_RESOURCE_NAME STACK_NAME
 
 Options:
-     --healthy-timeout=SECONDS  Time to wait for this instance to become healthy [default: 120]
+     --healthy-timeout=SECONDS  Time to wait for this instance to become healthy [default: 1200]
      --instance-id=STRING       Instance id of the instance to signal, uses instance metadata by default
      --region=STRING            Region of the AWS regions to connect to, uses instance metadata by default
 """
@@ -16,7 +16,6 @@ import logging
 
 from cseh.HealthChecker import HealthChecker
 from docopt import docopt
-
 
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S', level=logging.INFO)
 logger = logging.getLogger(__name__)
