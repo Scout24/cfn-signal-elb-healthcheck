@@ -1,4 +1,6 @@
 # cfn-signal-elb-healthcheck
+# This project is DEPRECATED and not any longer supported
+
 Useful for using CloudFormation rolling updates on web applications.
 
 *Work in Progress*
